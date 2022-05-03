@@ -2,8 +2,10 @@
 using System.Net.Sockets;
 
 // start listening to new connections on the given socket
-var tcpListener = new TcpListener(IPAddress.Loopback, 12244);
+var tcpListener = new TcpListener(IPAddress.Any, 12244);
 tcpListener.Start();
+
+Console.WriteLine("Server listening on: "+tcpListener.LocalEndpoint);
 
 while (true)
 {
