@@ -1,13 +1,15 @@
+using System;
 using System.IO;
 using System.Net.Sockets;
+using System.Threading;
 using Messages;
 using UnityEngine;
 
 public class Connection
 {
+    public event Action<MatchInfoMessage> matchInfoMessageReceived;
     private static Connection _instance;
     private StreamWriter streamWriter;
-    private StreamReader streamReader;
 
     public static Connection Instance
     {
@@ -23,19 +25,32 @@ public class Connection
         this.Client = client;
         this.PlayerName = playerName;
         this.streamWriter = new StreamWriter(client.GetStream());
-        this.streamReader = new StreamReader(client.GetStream());
+        new Thread(ReadPlayer).Start();
         SendMessage(new LoginMessage
         {
             playerName = playerName
         });
     }
 
-    public TcpClient Client { get; private set; }
-    public string PlayerName { get; private set; }
+    private TcpClient Client { get; set; }
+    private string PlayerName { get; set; }
 
     public void SendMessage<T>(T message)
     {
         streamWriter.WriteLine(JsonUtility.ToJson(message));
         streamWriter.Flush();
+    }
+    
+    void ReadPlayer()
+    {
+        var streamReader = new StreamReader(Client.GetStream());
+        while (true)
+        {
+            // block the reading thread until a whole line of information has arrived.
+            string? json = streamReader.ReadLine();
+            var matchInfo = JsonUtility.FromJson<MatchInfoMessage>(json);
+            matchInfoMessageReceived?.Invoke(matchInfo);
+            Debug.Log(json);
+        }
     }
 }

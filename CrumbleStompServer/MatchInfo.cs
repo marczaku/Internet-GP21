@@ -1,14 +1,11 @@
 namespace CrumbleStompServer;
 
+/// <summary>
+/// Contains all important information for one Match.
+/// </summary>
 public class MatchInfo
 {
     public bool started;
-    public PlayerInfo red;
-    public PlayerInfo blue;
-}
-
-public class PlayerInfo
-{
-    public string name;
-    public int cookies;
+    public PlayerInfo red = new();
+    public PlayerInfo blue = new();
 }

@@ -3,6 +3,10 @@ using System.Net.Sockets;
 
 namespace CrumbleStompServer;
 
+/// <summary>
+/// Matchmaking class. It assigns newly connected players.
+/// To CrumbleStompMatch Instances.
+/// </summary>
 public static class Program
 {
     public static void Main()
