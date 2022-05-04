@@ -27,7 +27,7 @@ public class TicTacToe
         return false;
     }
 
-    private string inputFormat = @"{""X\"":1,""Y"":1}";
+    private string inputFormat = @"{""X"":1,""Y"":1}";
 
     public void Start()
     {
@@ -73,8 +73,5 @@ public class TicTacToe
         
         // TODO: Announce Winner (or Draw)
     }
-    
-    
-
     
 }
