@@ -26,15 +26,13 @@ public static class Program
             if (match == null)
             {
                 Console.WriteLine("Starting new Match for Player. Waiting for Second Player.");
-                match = new CrumbleStompMatch
-                {
-                    red = tcpClient
-                };
+                match = new CrumbleStompMatch();
+                match.InitRed(tcpClient);
             }
             else
             {
                 Console.WriteLine("Assigning Player to existing Match. Starting Match.");
-                match.blue = tcpClient;
+                match.InitBlue(tcpClient);
                 new Thread(match.Start).Start();
                 match = null;
             }
