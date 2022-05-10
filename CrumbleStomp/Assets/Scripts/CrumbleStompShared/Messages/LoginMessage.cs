@@ -1,4 +1,4 @@
-namespace Messages
+namespace CrumbleStompShared.Messages
 {
     public class LoginMessage
     {

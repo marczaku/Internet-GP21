@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrumbleStompServer", "CrumbleStompServer\CrumbleStompServer.csproj", "{751B2C9A-A7B4-46FA-93CF-C5E129BD0D69}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrumbleStompShared", "..\CrumbleStomp\CrumbleStompShared.csproj", "{DD703968-401B-0FB4-0A19-0E60D7D81FA8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{751B2C9A-A7B4-46FA-93CF-C5E129BD0D69}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{751B2C9A-A7B4-46FA-93CF-C5E129BD0D69}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{751B2C9A-A7B4-46FA-93CF-C5E129BD0D69}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{751B2C9A-A7B4-46FA-93CF-C5E129BD0D69}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DD703968-401B-0FB4-0A19-0E60D7D81FA8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD703968-401B-0FB4-0A19-0E60D7D81FA8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD703968-401B-0FB4-0A19-0E60D7D81FA8}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD703968-401B-0FB4-0A19-0E60D7D81FA8}.Release|Any CPU.Build.0 = Debug|Any CPU
+	EndGlobalSection
+EndGlobal

@@ -1,4 +1,5 @@
-using Messages;
+using CrumbleStompShared.Messages;
+using CrumbleStompShared.Networking;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,12 +11,10 @@ public class WaitGame : MonoBehaviour
 
     void Awake()
     {
-        Connection.Instance.matchInfoMessageReceived += OnMatchInfoMessageReceived;
     }
 
     private void OnDestroy()
     {
-        Connection.Instance.matchInfoMessageReceived -= OnMatchInfoMessageReceived;
     }
 
     private void OnMatchInfoMessageReceived(MatchInfoMessage obj)
