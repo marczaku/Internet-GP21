@@ -9,23 +9,13 @@ using CrumbleStompShared.Messages;
 
 namespace CrumbleStompShared.Networking
 {
-    public class ObjectHolder
+    public class MessageBase
     {
         public string type;
 
-        public ObjectHolder(string type)
+        public MessageBase()
         {
-            this.type = type;
-        }
-    }
-
-    public class ObjectHolder<T> : ObjectHolder
-    {
-        public T obj;
-
-        public ObjectHolder(T obj) : base(typeof(ObjectHolder<T>).FullName)
-        {
-            this.obj = obj;
+            this.type = GetType().FullName;
         }
     }
     
@@ -48,9 +38,10 @@ namespace CrumbleStompShared.Networking
             new Thread(ReceiveMessages).Start();
         }
 
-        public void SendMessage<T>(T message)
+        public void SendMessage<TMessage>(TMessage message)
+        where TMessage : MessageBase
         {
-            streamWriter.WriteLine(m_Json.Serialize(new ObjectHolder<T>(message)));
+            streamWriter.WriteLine(m_Json.Serialize(message));
             streamWriter.Flush();
         }
     
@@ -63,20 +54,21 @@ namespace CrumbleStompShared.Networking
                 string? json = streamReader.ReadLine();
                 if(json == null)
                     continue;
-                var holder = m_Json.Deserialize<ObjectHolder>(json);
+                var holder = m_Json.Deserialize<MessageBase>(json);
                 var type = AppDomain.CurrentDomain
                     .GetAssemblies()
                     .Select(assembly => assembly.GetType(holder.type))
                     .Single(type => type != null);
-                var objectHolder = m_Json.Deserialize(json, type) as ObjectHolder;
+                var objectHolder = m_Json.Deserialize(json, type) as MessageBase;
                 var listener = listeners[type];
                 listener.DynamicInvoke(objectHolder);
             }
         }
 
-        public void Subscribe<T>(Action<ObjectHolder<T>> onMessageReceived)
+        public void Subscribe<TMessage>(Action<TMessage> onMessageReceived)
+            where TMessage : MessageBase
         {
-            listeners[typeof(ObjectHolder<T>)] = onMessageReceived;
+            listeners[typeof(TMessage)] = onMessageReceived;
         }
     }
 }

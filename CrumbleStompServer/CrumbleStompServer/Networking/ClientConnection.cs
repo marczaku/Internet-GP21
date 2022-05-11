@@ -25,9 +25,8 @@ namespace CrumbleStompServer.Networking
             Connection.Subscribe<LoginMessage>(OnMessageReceived);
         }
 
-        void OnMessageReceived(ObjectHolder<LoginMessage> loginHolder)
+        void OnMessageReceived(LoginMessage loginMessage)
         {
-            var loginMessage = loginHolder.obj;
             Console.WriteLine($"[#{_match.Id}] Player '{loginMessage.playerName}' logged in.");
             Connection.PlayerName = loginMessage.playerName;
             _playerInfo.name = loginMessage.playerName;

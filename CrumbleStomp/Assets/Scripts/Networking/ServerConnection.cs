@@ -32,9 +32,8 @@ public class ServerConnection
         });
     }
 
-    void OnMessageReceived(ObjectHolder<MatchInfoMessage> matchInfoHolder)
+    void OnMessageReceived(MatchInfoMessage matchInfo)
     {
-        var matchInfo = matchInfoHolder.obj;
         Debug.Log(matchInfo);
     }
 }
