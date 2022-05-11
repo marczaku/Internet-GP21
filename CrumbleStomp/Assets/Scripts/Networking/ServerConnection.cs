@@ -24,7 +24,7 @@ public class ServerConnection
         var client = new TcpClient();
         client.Connect(IPAddress.Loopback, 12244);
         this.Connection = new Connection(new UnityLogger(), new UnityJson(), client);
-        this.Connection.MessageReceived += OnMessageReceived;
+        this.Connection.Subscribe<MatchInfoMessage>(OnMessageReceived);
         this.Connection.PlayerName = playerName;
         this.Connection.SendMessage(new LoginMessage
         {
@@ -32,10 +32,9 @@ public class ServerConnection
         });
     }
 
-    void OnMessageReceived(string json)
+    void OnMessageReceived(ObjectHolder<MatchInfoMessage> matchInfoHolder)
     {
-        // TODO: implement client logic
-        var matchInfo = JsonUtility.FromJson<MatchInfoMessage>(json);
-        Debug.Log(json);
+        var matchInfo = matchInfoHolder.obj;
+        Debug.Log(matchInfo);
     }
 }

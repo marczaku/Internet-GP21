@@ -1,8 +1,5 @@
 using System;
-using System.IO;
 using System.Net.Sockets;
-using System.Text.Json;
-using System.Threading;
 using CrumbleStompShared.Messages;
 using CrumbleStompShared.Model;
 using CrumbleStompShared.Networking;
@@ -25,26 +22,16 @@ namespace CrumbleStompServer.Networking
             Connection = new Connection(new ConsoleLogger(), new DotNetJson(), client);
             _match = match;
             _playerInfo = playerInfo;
-            Connection.MessageReceived += OnMessageReceived;
+            Connection.Subscribe<LoginMessage>(OnMessageReceived);
         }
 
-        void OnMessageReceived(string json)
+        void OnMessageReceived(ObjectHolder<LoginMessage> loginHolder)
         {
-            if (_playerInfo.ready)
-            {
-                // then, it should be a CookieClickMessage
-                // TODO: increase cookies by one _playerInfo.cookies++;
-            }
-            else
-            {
-                // if the player is not ready, yet, we expect a LoginMessage.
-                var loginMessage = new DotNetJson().Deserialize<LoginMessage>(json);
-                Console.WriteLine($"[#{_match.Id}] Player '{loginMessage.playerName}' logged in.");
-                Connection.PlayerName = loginMessage.playerName;
-                _playerInfo.name = loginMessage.playerName;
-                _playerInfo.ready = true;
-            }
-
+            var loginMessage = loginHolder.obj;
+            Console.WriteLine($"[#{_match.Id}] Player '{loginMessage.playerName}' logged in.");
+            Connection.PlayerName = loginMessage.playerName;
+            _playerInfo.name = loginMessage.playerName;
+            _playerInfo.ready = true;
             _match.DistributeMatchInfo();
         }
     }
