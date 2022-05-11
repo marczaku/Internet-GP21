@@ -55,20 +55,46 @@ namespace CrumbleStompShared.Networking
                 if(json == null)
                     continue;
                 var holder = m_Json.Deserialize<MessageBase>(json);
+                
+                if (holder == null)
+                {
+                    m_Logger.Log($"Invalid message received: {json}");
+                    continue;
+                }
+                
                 var type = AppDomain.CurrentDomain
                     .GetAssemblies()
                     .Select(assembly => assembly.GetType(holder.type))
-                    .Single(type => type != null);
+                    .SingleOrDefault(type => type != null);
+                
+                if (type == null)
+                {
+                    m_Logger.Log($"Unsupported Message of Type {holder.type} received. Ignoring.");
+                    continue;
+                }
+                
                 var objectHolder = m_Json.Deserialize(json, type) as MessageBase;
-                var listener = listeners[type];
-                listener.DynamicInvoke(objectHolder);
+                if (listeners.TryGetValue(type, out var listener))
+                {
+                    listener.DynamicInvoke(objectHolder);
+                }
             }
         }
 
         public void Subscribe<TMessage>(Action<TMessage> onMessageReceived)
             where TMessage : MessageBase
         {
-            listeners[typeof(TMessage)] = onMessageReceived;
+            if (listeners.TryGetValue(typeof(TMessage), out var del))
+                listeners[typeof(TMessage)] = Delegate.Combine(del, onMessageReceived);
+            else
+                listeners[typeof(TMessage)] = onMessageReceived;
+        }
+
+        public void Unsubscribe<TMessage>(Action<TMessage> onMessageReceived)
+            where TMessage : MessageBase
+        {
+            if (listeners.TryGetValue(typeof(TMessage), out var del))
+                listeners[typeof(TMessage)] = Delegate.Remove(del, onMessageReceived);
         }
     }
 }
