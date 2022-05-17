@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using System.IO;
-using System.Text.Json;
 using CrumbleStompShared.CrumbleStompShared.Interfaces;
 using CrumbleStompShared.Model;
 
@@ -13,57 +11,45 @@ namespace CrumbleStompServer.Model
     /// Value Objects are compared by Value (e.g. Vector(2,2) == Vector(2,2), because all fields are the same)
     ///
     /// It can also retrieve Entities
-    /// It-Memory Database (therefore stored in RAM)
-    /// And RAM is non-persistent
-    /// Therefore, this Database is non-persistent
+    /// It is persistent and saves each player to its individual File.
     /// </summary>
     public class PlayerDataBase
     {
-        private readonly ILogger _logger;
         private readonly IJson _json;
-        private readonly Dictionary<string, PlayerData> _playerDatas = new ();
 
-        public PlayerDataBase(ILogger logger, IJson json)
+        public PlayerDataBase(IJson json)
         {
-            _logger = logger;
+            if (!Directory.Exists("players"))
+                Directory.CreateDirectory("players");
             _json = json;
-            if (File.Exists("players.json"))
-            {
-                var jsonText = File.ReadAllText("players.json");
-                _playerDatas = json.Deserialize<Dictionary<string, PlayerData>>(jsonText);
-                _logger.Log($"Found existing database with {_playerDatas.Count} player entries.");
-            }
-            else
-            {
-                _logger.Log("Found no existing database. Creating new one.");
-            }
         }
+
+        static string GetFilePath(string playerName) => $"players/{playerName}.json";
         
         public PlayerData GetOrCreatePlayer(string playerName)
         {
-            if (!_playerDatas.TryGetValue(playerName, out var data))
+            // if the player exists, load him from the file
+            if (File.Exists(GetFilePath(playerName)))
             {
-                data = new PlayerData
-                {
-                    name = playerName,
-                    cookies = 0
-                };
-                _playerDatas[playerName] = data;
+                var jsonText = File.ReadAllText(GetFilePath(playerName));
+                return _json.Deserialize<PlayerData>(jsonText);
             }
-
+            
+            // else, create a new player
+            var data = new PlayerData
+            {
+                name = playerName,
+                cookies = 0
+            };
+            // save him to disk
+            UpdatePlayer(data);
+            // and return him
             return data;
         }
 
         public void UpdatePlayer(PlayerData playerData)
         {
-            _playerDatas[playerData.name] = playerData;
-            Save();
-        }
-
-        private void Save()
-        {
-            var json = _json.Serialize(_playerDatas);
-            File.WriteAllText("players.json", json);
+            File.WriteAllText($"players/{playerData.name}.json", _json.Serialize(playerData));
         }
     }
 }
