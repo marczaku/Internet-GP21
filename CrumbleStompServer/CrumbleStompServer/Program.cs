@@ -3,8 +3,10 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using CrumbleStompServer.Interfaces;
 using CrumbleStompServer.Model;
 using CrumbleStompShared.Messages;
+using CrumbleStompShared.Model;
 
 namespace CrumbleStompServer
 {
@@ -33,7 +35,7 @@ namespace CrumbleStompServer
 
             Console.WriteLine("Server listening on: "+tcpListener.LocalEndpoint);
 
-            PlayerDataBase dataBase = new PlayerDataBase(new DotNetJson());
+            IDatabase<PlayerData> dataBase = new PlayerDataBase(new DotNetJson());
             CrumbleStompMatch match = null;
 
             while (true)

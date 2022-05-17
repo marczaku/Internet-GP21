@@ -1,5 +1,6 @@
 using System;
 using System.Net.Sockets;
+using CrumbleStompServer.Interfaces;
 using CrumbleStompServer.Model;
 using CrumbleStompShared.Messages;
 using CrumbleStompShared.Model;
@@ -16,10 +17,10 @@ namespace CrumbleStompServer.Networking
     {
         private readonly CrumbleStompMatch _match;
         private readonly PlayerInfo _playerInfo;
-        private readonly PlayerDataBase _playerDataBase;
+        private readonly IDatabase<PlayerData> _playerDataBase;
         public Connection Connection { get; }
 
-        public ClientConnection(TcpClient client, CrumbleStompMatch match, PlayerInfo playerInfo, PlayerDataBase playerDataBase)
+        public ClientConnection(TcpClient client, CrumbleStompMatch match, PlayerInfo playerInfo, IDatabase<PlayerData> playerDataBase)
         {
             Connection = new Connection(new ConsoleLogger(), new DotNetJson(), client);
             _match = match;
@@ -32,7 +33,7 @@ namespace CrumbleStompServer.Networking
         private void OnCollectCookieReceived(CollectCookieMessage collectCookie)
         {
             _playerInfo.data.cookies++;
-            _playerDataBase.UpdatePlayer(_playerInfo.data);
+            _playerDataBase.Update(_playerInfo.data.name, _playerInfo.data);
             _match.DistributeMatchInfo();
         }
 
@@ -40,7 +41,7 @@ namespace CrumbleStompServer.Networking
         {
             Console.WriteLine($"[#{_match.Id}] Player '{loginMessage.playerName}' logged in.");
             Connection.PlayerName = loginMessage.playerName;
-            _playerInfo.data = _playerDataBase.GetOrCreatePlayer(loginMessage.playerName);
+            _playerInfo.data = _playerDataBase.ReadOrCreate(loginMessage.playerName);
             _playerInfo.ready = true;
             _match.DistributeMatchInfo();
         }
