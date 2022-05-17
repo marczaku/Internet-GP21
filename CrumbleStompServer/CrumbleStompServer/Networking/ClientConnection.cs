@@ -32,6 +32,7 @@ namespace CrumbleStompServer.Networking
         private void OnCollectCookieReceived(CollectCookieMessage collectCookie)
         {
             _playerInfo.data.cookies++;
+            _playerDataBase.UpdatePlayer(_playerInfo.data);
             _match.DistributeMatchInfo();
         }
 

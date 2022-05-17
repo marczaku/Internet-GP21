@@ -33,7 +33,7 @@ namespace CrumbleStompServer
 
             Console.WriteLine("Server listening on: "+tcpListener.LocalEndpoint);
 
-            PlayerDataBase dataBase = new PlayerDataBase();
+            PlayerDataBase dataBase = new PlayerDataBase(new ConsoleLogger(), new DotNetJson());
             CrumbleStompMatch match = null;
 
             while (true)

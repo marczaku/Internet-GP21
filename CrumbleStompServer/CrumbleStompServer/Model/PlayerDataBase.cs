@@ -1,4 +1,7 @@
 using System.Collections.Generic;
+using System.IO;
+using System.Text.Json;
+using CrumbleStompShared.CrumbleStompShared.Interfaces;
 using CrumbleStompShared.Model;
 
 namespace CrumbleStompServer.Model
@@ -16,8 +19,26 @@ namespace CrumbleStompServer.Model
     /// </summary>
     public class PlayerDataBase
     {
+        private readonly ILogger _logger;
+        private readonly IJson _json;
         private readonly Dictionary<string, PlayerData> _playerDatas = new ();
 
+        public PlayerDataBase(ILogger logger, IJson json)
+        {
+            _logger = logger;
+            _json = json;
+            if (File.Exists("players.json"))
+            {
+                var jsonText = File.ReadAllText("players.json");
+                _playerDatas = json.Deserialize<Dictionary<string, PlayerData>>(jsonText);
+                _logger.Log($"Found existing database with {_playerDatas.Count} player entries.");
+            }
+            else
+            {
+                _logger.Log("Found no existing database. Creating new one.");
+            }
+        }
+        
         public PlayerData GetOrCreatePlayer(string playerName)
         {
             if (!_playerDatas.TryGetValue(playerName, out var data))
@@ -31,6 +52,18 @@ namespace CrumbleStompServer.Model
             }
 
             return data;
+        }
+
+        public void UpdatePlayer(PlayerData playerData)
+        {
+            _playerDatas[playerData.name] = playerData;
+            Save();
+        }
+
+        private void Save()
+        {
+            var json = _json.Serialize(_playerDatas);
+            File.WriteAllText("players.json", json);
         }
     }
 }
