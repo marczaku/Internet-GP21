@@ -1,5 +1,6 @@
 using System;
 using System.Net.Sockets;
+using CrumbleStompServer.Model;
 using CrumbleStompShared.Messages;
 using CrumbleStompShared.Model;
 using CrumbleStompShared.Networking;
@@ -15,21 +16,30 @@ namespace CrumbleStompServer.Networking
     {
         private readonly CrumbleStompMatch _match;
         private readonly PlayerInfo _playerInfo;
+        private readonly PlayerDataBase _playerDataBase;
         public Connection Connection { get; }
 
-        public ClientConnection(TcpClient client, CrumbleStompMatch match, PlayerInfo playerInfo)
+        public ClientConnection(TcpClient client, CrumbleStompMatch match, PlayerInfo playerInfo, PlayerDataBase playerDataBase)
         {
             Connection = new Connection(new ConsoleLogger(), new DotNetJson(), client);
             _match = match;
             _playerInfo = playerInfo;
-            Connection.Subscribe<LoginMessage>(OnMessageReceived);
+            _playerDataBase = playerDataBase;
+            Connection.Broker.Subscribe<LoginMessage>(OnLoginReceived);
+            Connection.Broker.Subscribe<CollectCookieMessage>(OnCollectCookieReceived);
         }
 
-        void OnMessageReceived(LoginMessage loginMessage)
+        private void OnCollectCookieReceived(CollectCookieMessage collectCookie)
+        {
+            _playerInfo.data.cookies++;
+            _match.DistributeMatchInfo();
+        }
+
+        void OnLoginReceived(LoginMessage loginMessage)
         {
             Console.WriteLine($"[#{_match.Id}] Player '{loginMessage.playerName}' logged in.");
             Connection.PlayerName = loginMessage.playerName;
-            _playerInfo.name = loginMessage.playerName;
+            _playerInfo.data = _playerDataBase.GetOrCreatePlayer(loginMessage.playerName);
             _playerInfo.ready = true;
             _match.DistributeMatchInfo();
         }

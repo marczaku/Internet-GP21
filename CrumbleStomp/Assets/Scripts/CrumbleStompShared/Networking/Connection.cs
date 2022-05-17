@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
@@ -18,19 +17,21 @@ namespace CrumbleStompShared.Networking
             this.type = GetType().FullName;
         }
     }
-    
+
     public class Connection
     {
         private readonly ILogger m_Logger;
         private readonly IJson m_Json;
         private readonly StreamWriter streamWriter;
-        private readonly Dictionary<Type, Delegate> listeners = new();
 
         private TcpClient Client { get; }
         public string PlayerName { get; set; }
 
+        public Broker Broker { get; }
+
         public Connection(ILogger logger, IJson json, TcpClient client)
         {
+            Broker = new Broker();
             m_Logger = logger;
             m_Json = json;
             Client = client;
@@ -51,50 +52,42 @@ namespace CrumbleStompShared.Networking
             while (true)
             {
                 // block the reading thread until a whole line of information has arrived.
-                string? json = streamReader.ReadLine();
-                if(json == null)
-                    continue;
-                var holder = m_Json.Deserialize<MessageBase>(json);
-                
-                if (holder == null)
+                try
                 {
-                    m_Logger.Log($"Invalid message received: {json}");
-                    continue;
+                    string? json = streamReader.ReadLine();
+                    if (json == null)
+                        continue;
+                    var holder = m_Json.Deserialize<MessageBase>(json);
+
+                    if (holder == null)
+                    {
+                        m_Logger.Log($"[{Client.Client.RemoteEndPoint}] Invalid message received: {json}");
+                        continue;
+                    }
+
+                    var type = AppDomain.CurrentDomain
+                        .GetAssemblies()
+                        .Select(assembly => assembly.GetType(holder.type))
+                        .SingleOrDefault(type => type != null);
+
+                    if (type == null)
+                    {
+                        m_Logger.Log($"[{Client.Client.RemoteEndPoint}] Unsupported Message of Type {holder.type} received. Ignoring.");
+                        continue;
+                    }
+
+                    var message = m_Json.Deserialize(json, type) as MessageBase;
+                    Broker.InvokeSubscribers(type, message);
+                }
+                catch (IOException e)
+                {
+                    m_Logger.Log($"[{Client.Client.RemoteEndPoint}] {e}");
+                    // player disconnected
+                    // flag them as disconnected
+                    // after a while: win by default for the other player
                 }
                 
-                var type = AppDomain.CurrentDomain
-                    .GetAssemblies()
-                    .Select(assembly => assembly.GetType(holder.type))
-                    .SingleOrDefault(type => type != null);
-                
-                if (type == null)
-                {
-                    m_Logger.Log($"Unsupported Message of Type {holder.type} received. Ignoring.");
-                    continue;
-                }
-                
-                var objectHolder = m_Json.Deserialize(json, type) as MessageBase;
-                if (listeners.TryGetValue(type, out var listener))
-                {
-                    listener.DynamicInvoke(objectHolder);
-                }
             }
-        }
-
-        public void Subscribe<TMessage>(Action<TMessage> onMessageReceived)
-            where TMessage : MessageBase
-        {
-            if (listeners.TryGetValue(typeof(TMessage), out var del))
-                listeners[typeof(TMessage)] = Delegate.Combine(del, onMessageReceived);
-            else
-                listeners[typeof(TMessage)] = onMessageReceived;
-        }
-
-        public void Unsubscribe<TMessage>(Action<TMessage> onMessageReceived)
-            where TMessage : MessageBase
-        {
-            if (listeners.TryGetValue(typeof(TMessage), out var del))
-                listeners[typeof(TMessage)] = Delegate.Remove(del, onMessageReceived);
         }
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Net.Sockets;
+using CrumbleStompServer.Model;
 using CrumbleStompShared.Messages;
 using CrumbleStompShared.Model;
 using CrumbleStompServer.Networking;
@@ -12,6 +13,7 @@ namespace CrumbleStompServer
     /// </summary>
     public class CrumbleStompMatch
     {
+        private readonly PlayerDataBase _playerDataBase;
         private static int id;
         public int Id { get; }
         private ClientConnection? Red { get; set; }
@@ -19,19 +21,20 @@ namespace CrumbleStompServer
     
         private readonly MatchInfo matchInfo = new();
     
-        public CrumbleStompMatch()
+        public CrumbleStompMatch(PlayerDataBase playerDataBase)
         {
+            _playerDataBase = playerDataBase;
             Id = ++id;
         }
     
         public void InitRed(TcpClient client)
         {
-            Red = new ClientConnection(client, this, matchInfo.red);
+            Red = new ClientConnection(client, this, matchInfo.red, _playerDataBase);
         }
         
         public void InitBlue(TcpClient client)
         {
-            Blue = new ClientConnection(client, this, matchInfo.blue);
+            Blue = new ClientConnection(client, this, matchInfo.blue, _playerDataBase);
         }
     
         /// <summary>

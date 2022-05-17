@@ -3,6 +3,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using CrumbleStompServer.Model;
 using CrumbleStompShared.Messages;
 
 namespace CrumbleStompServer
@@ -32,6 +33,7 @@ namespace CrumbleStompServer
 
             Console.WriteLine("Server listening on: "+tcpListener.LocalEndpoint);
 
+            PlayerDataBase dataBase = new PlayerDataBase();
             CrumbleStompMatch match = null;
 
             while (true)
@@ -45,7 +47,7 @@ namespace CrumbleStompServer
                 if (match == null)
                 {
                     Console.WriteLine("Starting new Match for Player. Waiting for Second Player.");
-                    match = new CrumbleStompMatch();
+                    match = new CrumbleStompMatch(dataBase);
                     match.InitRed(tcpClient);
                 }
                 else
