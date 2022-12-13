@@ -1,7 +1,9 @@
+using System;
 using System.IO;
 using CrumbleStompServer.Interfaces;
 using CrumbleStompShared.CrumbleStompShared.Interfaces;
 using CrumbleStompShared.Model;
+using Npgsql;
 
 namespace CrumbleStompServer.Model
 {
@@ -22,9 +24,20 @@ namespace CrumbleStompServer.Model
 
         public PlayerDataBase(IJson json)
         {
-            if (!Directory.Exists("players"))
-                Directory.CreateDirectory("players");
-            _json = json;
+            var connectionString = new NpgsqlConnectionStringBuilder()
+            {
+                Host = "localhost",
+                Username = "agario_server",
+                Password = "agr_srvr",
+                Database = "agario"
+            }.ToString();
+            using var con = new NpgsqlConnection(connectionString);
+            con.Open();
+
+            var sql = "SELECT * from agario.users";
+            using var cmd = new NpgsqlCommand(sql, con);
+            var users = cmd.ExecuteReader();
+            Console.WriteLine($"PostgreSQL version: {users}");
         }
 
         static string GetFilePath(string playerName) => $"players/{playerName}.json";
@@ -36,14 +49,13 @@ namespace CrumbleStompServer.Model
 
         public PlayerData ReadOrCreate(string id)
         {
-            
             // if the player exists, load him from the file
             if (File.Exists(GetFilePath(id)))
             {
                 var jsonText = File.ReadAllText(GetFilePath(id));
                 return _json.Deserialize<PlayerData>(jsonText);
             }
-            
+
             // else, create a new player
             var data = new PlayerData
             {

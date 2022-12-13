@@ -77,7 +77,7 @@ namespace CrumbleStompShared.Networking
                     }
 
                     var message = m_Json.Deserialize(json, type) as MessageBase;
-                    Broker.InvokeSubscribers(type, message);
+                    Broker.Publish(type, message);
                 }
                 catch (IOException e)
                 {
